@@ -1,3 +1,6 @@
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
@@ -9,9 +12,15 @@ public class TaskManager {
         List<Task> tasks = new ArrayList<>();
 
         JFrame frame = new JFrame("タスク管理アプリ");
-        frame.setSize(500, 400);
+        frame.setSize(600, 450);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLayout(null);
+        frame.setLayout(new BorderLayout());
+
+        // =========================
+        // 入力エリア
+        // =========================
+
+        JPanel inputPanel = new JPanel(new FlowLayout());
 
         // 月
         String[] months = {
@@ -19,7 +28,8 @@ public class TaskManager {
             "7月", "8月", "9月", "10月", "11月", "12月"
         };
 
-        JComboBox<String> monthBox = new JComboBox<>(months);
+        JComboBox<String> monthBox =
+            new JComboBox<>(months);
 
         // 日
         String[] days = new String[31];
@@ -28,7 +38,8 @@ public class TaskManager {
             days[i] = (i + 1) + "日";
         }
 
-        JComboBox<String> dayBox = new JComboBox<>(days);
+        JComboBox<String> dayBox =
+            new JComboBox<>(days);
 
         // 時
         String[] hours = new String[24];
@@ -37,72 +48,220 @@ public class TaskManager {
             hours[i] = String.format("%02d時", i);
         }
 
-        JComboBox<String> hourBox = new JComboBox<>(hours);
+        JComboBox<String> hourBox =
+            new JComboBox<>(hours);
 
         // 分
         String[] minutes = {
-            "00分", "10分", "20分", "30分", "40分", "50分"
+            "00分", "10分", "20分",
+            "30分", "40分", "50分"
         };
 
-        JComboBox<String> minuteBox = new JComboBox<>(minutes);
+        JComboBox<String> minuteBox =
+            new JComboBox<>(minutes);
 
         // 備考欄
-        JTextField noteField = new JTextField();
+        JTextField noteField =
+            new JTextField(15);
 
         // 追加ボタン
-        JButton addButton = new JButton("追加");
+        JButton addButton =
+            new JButton("追加");
 
-        // 固定タイトル
-        JLabel unfinishedLabel = new JLabel("未完了タスク");
+        // 入力エリアへ追加
+        inputPanel.add(monthBox);
+        inputPanel.add(dayBox);
+        inputPanel.add(hourBox);
+        inputPanel.add(minuteBox);
+        inputPanel.add(noteField);
+        inputPanel.add(addButton);
 
-        // タスク表示
-        JLabel taskLabel = new JLabel("タスクはまだありません");
 
-        // 部品の位置
-        monthBox.setBounds(30, 40, 70, 30);
-        dayBox.setBounds(110, 40, 70, 30);
+        // =========================
+        // タスク表示エリア
+        // =========================
 
-        hourBox.setBounds(200, 40, 70, 30);
-        minuteBox.setBounds(280, 40, 70, 30);
+        JPanel taskPanel = new JPanel();
 
-        noteField.setBounds(30, 90, 300, 30);
-        addButton.setBounds(340, 90, 80, 30);
+        taskPanel.setLayout(
+            new BoxLayout(
+                taskPanel,
+                BoxLayout.Y_AXIS
+            )
+        );
 
-        unfinishedLabel.setBounds(30, 150, 200, 30);
-        taskLabel.setBounds(30, 190, 400, 30);
+        JLabel unfinishedLabel =
+            new JLabel("未完了タスク");
 
-        // 追加ボタンを押したとき
+        taskPanel.add(unfinishedLabel);
+
+
+        // =========================
+        // 追加ボタンのイベント
+        // =========================
+
         addButton.addActionListener(e -> {
 
-            String month = (String) monthBox.getSelectedItem();
-            String day = (String) dayBox.getSelectedItem();
-            String hour = (String) hourBox.getSelectedItem();
-            String minute = (String) minuteBox.getSelectedItem();
-            String note = noteField.getText();
+            String month =
+                (String) monthBox.getSelectedItem();
+
+            String day =
+                (String) dayBox.getSelectedItem();
+
+            String hour =
+                (String) hourBox.getSelectedItem();
+
+            String minute =
+                (String) minuteBox.getSelectedItem();
+
+            String note =
+                noteField.getText();
 
             String title =
-                month + day + " "
+                month
+                + day
+                + " "
                 + hour.replace("時", "")
                 + ":"
                 + minute.replace("分", "")
-                + " ～" + note;
+                + " ～"
+                + note;
 
-            tasks.add(new Task(title));
 
-            taskLabel.setText(title);
+            // =========================
+            // Taskインスタンス作成
+            // =========================
 
+            Task task =
+                new Task(title);
+
+            tasks.add(task);
+
+
+            // =========================
+            // 1件分の表示エリア
+            // =========================
+
+            JPanel oneTaskPanel =
+                new JPanel(
+                    new FlowLayout(
+                        FlowLayout.LEFT
+                    )
+                );
+
+            // タスク内容
+            JLabel taskLabel =
+                new JLabel(title);
+
+            // チェックボックス
+            JCheckBox checkBox =
+                new JCheckBox();
+
+            // 削除ボタン
+            JButton deleteButton =
+                new JButton("×");
+
+
+            // =========================
+            // チェック・削除部品のサイズ
+            // =========================
+
+            Dimension controlSize =
+                new Dimension(45, 30);
+
+            checkBox.setPreferredSize(
+                controlSize
+            );
+
+            deleteButton.setPreferredSize(
+                controlSize
+            );
+
+
+            // =========================
+            // 1件分のパネルへ追加
+            // =========================
+
+            oneTaskPanel.add(taskLabel);
+
+            oneTaskPanel.add(checkBox);
+
+            oneTaskPanel.add(deleteButton);
+
+
+            // タスク一覧へ追加
+            taskPanel.add(oneTaskPanel);
+
+
+            // =========================
+            // チェックボックスのイベント
+            // =========================
+
+            checkBox.addActionListener(event -> {
+
+                if (checkBox.isSelected()) {
+
+                    taskLabel.setText(
+                        "【完了】 " + title
+                    );
+
+                } else {
+
+                    taskLabel.setText(
+                        title
+                    );
+                }
+            });
+
+
+            // =========================
+            // 削除ボタンのイベント
+            // =========================
+
+            deleteButton.addActionListener(event -> {
+
+                // Listから削除
+                tasks.remove(task);
+
+                // 画面から削除
+                taskPanel.remove(
+                    oneTaskPanel
+                );
+
+                // 画面を更新
+                taskPanel.revalidate();
+
+                taskPanel.repaint();
+            });
+
+
+            // =========================
+            // 画面更新
+            // =========================
+
+            taskPanel.revalidate();
+
+            taskPanel.repaint();
+
+
+            // 備考欄を空にする
             noteField.setText("");
         });
 
-        // JFrameに部品を追加
-        frame.add(monthBox);
-        frame.add(dayBox);
-        frame.add(hourBox);
-        frame.add(minuteBox);
-        frame.add(noteField);
-        frame.add(addButton);
-        frame.add(unfinishedLabel);
-        frame.add(taskLabel);
+
+        // =========================
+        // JFrameへ配置
+        // =========================
+
+        frame.add(
+            inputPanel,
+            BorderLayout.NORTH
+        );
+
+        frame.add(
+            taskPanel,
+            BorderLayout.CENTER
+        );
 
         frame.setVisible(true);
     }
