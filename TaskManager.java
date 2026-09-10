@@ -13,6 +13,8 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.JDialog;
+
 
 public class TaskManager {
 
@@ -275,11 +277,6 @@ public class TaskManager {
                     new JCheckBox();
 
 
-                // 削除ボタン
-                JButton deleteButton =
-                    new JButton("×");
-
-
                 //編集ボタン
                 JButton editButton =
                     new JButton("編集");
@@ -300,26 +297,19 @@ public class TaskManager {
                     controlSize
                 );
 
-                deleteButton.setPreferredSize(
-                    controlSize
-                );
-
-
                 // =========================
                 // 1件分のPanelへ追加
                 // =========================
 
                 oneTaskPanel.add(
+                    checkBox
+                );
+                
+
+                oneTaskPanel.add(
                     taskLabel
                 );
 
-                oneTaskPanel.add(
-                    checkBox
-                );
-
-                oneTaskPanel.add(
-                    deleteButton
-                );
 
                 oneTaskPanel.add(
                     editButton
@@ -380,7 +370,19 @@ public class TaskManager {
                 
                 editButton.addActionListener(
                     event -> {
-                        
+
+                        //編集用ダイアログ
+
+                        JDialog editDialog = new JDialog(frame, "タスクを編集", true);
+
+                        editDialog.setSize(500, 180);
+
+                        editDialog.setLayout(new BorderLayout());
+
+                        //入力部分
+
+                        JPanel editInputPanel = new JPanel(new FlowLayout());
+                    
                         //編集用プルダウン
 
                         JComboBox<String> editMonthBox = new JComboBox<>(months);
@@ -388,7 +390,6 @@ public class TaskManager {
                         JComboBox<String> editHourBox = new JComboBox<>(hours);
                         JComboBox<String> editMinuteBox = new JComboBox<>(minutes);
                         JTextField editNoteField = new JTextField(task.note, 15);
-                        JButton editDeleteButton = new JButton("削除");
 
                         //現在の値を選択状態にする
                         editMonthBox.setSelectedItem(
@@ -407,86 +408,69 @@ public class TaskManager {
                             task.minute
                         );
 
+                        editInputPanel.add(editMonthBox);
+                        editInputPanel.add(editDayBox);
+                        editInputPanel.add(editHourBox);
+                        editInputPanel.add(editMinuteBox);
+                        editInputPanel.add(editNoteField);
 
-                        //編集画面
-                        JPanel editPanel = new JPanel();
+                        //下部ボタン
+                        JPanel buttonPanel = new JPanel( new BorderLayout());
+                        JButton editDeleteButton = new JButton("削除");
+                        JButton saveButton = new JButton("保存");
 
-                        editPanel.add(editMonthBox);
-                        editPanel.add(editDayBox);
-                        editPanel.add(editHourBox);
-                        editPanel.add(editMinuteBox);
-                        editPanel.add(editNoteField);
-                        editPanel.add(editDeleteButton);
-                        
+                        buttonPanel.add(editDeleteButton, BorderLayout.WEST);
+                        buttonPanel.add(saveButton, BorderLayout.EAST);
 
-                        int result = JOptionPane.showConfirmDialog(
-                            frame,
-                            editPanel,
-                            "タスクを編集",
-                            JOptionPane.OK_CANCEL_OPTION,
-                            JOptionPane.PLAIN_MESSAGE
+                        //保存ボタン
+                        saveButton.addActionListener(
+                            saveEvent -> {
+                                // 編集された値をタスクに反映
+                                task.month = (String) editMonthBox.getSelectedItem();
+                                task.day = (String) editDayBox.getSelectedItem();
+                                task.hour = (String) editHourBox.getSelectedItem();
+                                task.minute = (String) editMinuteBox.getSelectedItem();
+                                task.note = editNoteField.getText();
+
+                                // タイトルを更新
+                                taskLabel.setText(task.getTitle());
+
+                                // ダイアログを閉じる
+                                editDialog.dispose();
+                            }
                         );
 
-                        if (result == JOptionPane.OK_OPTION) {
-                            // 編集された値をタスクに反映
-                            task.month = (String) editMonthBox.getSelectedItem();
-                            task.day = (String) editDayBox.getSelectedItem();
-                            task.hour = (String) editHourBox.getSelectedItem();
-                            task.minute = (String) editMinuteBox.getSelectedItem();
-                            task.note = editNoteField.getText();
-                        }
+                        //削除ボタン
+                        editDeleteButton.addActionListener(
+                            deleteEvent -> {
+                                // Listから削除
+                                tasks.remove(task);
+
+                                // 未完了側から削除
+                                unfinishedTaskPanel.remove(oneTaskPanel);
+
+                                // 完了側から削除
+                                completedTaskPanel.remove(oneTaskPanel);
+
+                                // 画面更新
+                                taskPanel.revalidate();
+                                taskPanel.repaint();
+
+                                // ダイアログを閉じる
+                                editDialog.dispose();
+                            }
+                        );
+
+                        //JDialogに追加
+                        editDialog.add(editInputPanel, BorderLayout.CENTER);
+                        editDialog.add(buttonPanel, BorderLayout.SOUTH);
+                        editDialog.setLocationRelativeTo(frame);
+                        editDialog.setVisible(true);
+
                     }
                 );
 
-                editDeleteButton.addActionListener(
-                    deleteEvent -> {
-                        // Listから削除
-                        tasks.remove(task);
 
-                        // 未完了側から削除
-                        unfinishedTaskPanel.remove(oneTaskPanel);
-
-                        // 完了側から削除
-                        completedTaskPanel.remove(oneTaskPanel);
-
-                        // 画面更新
-                        taskPanel.revalidate();
-                        taskPanel.repaint();
-                    }
-                );
-
-
-                // =========================
-                // 削除ボタンのイベント
-                // =========================
-
-                deleteButton.addActionListener(
-                    event -> {
-
-                        // Listから削除
-                        tasks.remove(
-                            task
-                        );
-
-
-                        // 未完了側から削除
-                        unfinishedTaskPanel.remove(
-                            oneTaskPanel
-                        );
-
-
-                        // 完了側から削除
-                        completedTaskPanel.remove(
-                            oneTaskPanel
-                        );
-
-
-                        // 画面更新
-                        taskPanel.revalidate();
-
-                        taskPanel.repaint();
-                    }
-                );
 
 
                 // =========================
