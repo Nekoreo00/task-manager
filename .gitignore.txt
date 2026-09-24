@@ -1,0 +1,13 @@
+# Java compiled files
+*.class
+
+# Build artifacts
+*.jar
+
+# Build directories
+bin/
+build/
+out/
+
+# VS Code
+.vscode/
