@@ -147,7 +147,7 @@ public class TaskManagerFrame extends JFrame {
 
         JLabel unfinishedLabel =
             new JLabel(
-                "未完了タスク"
+                "【未完了タスク】"
             );
 
         unfinishedTaskPanel =
@@ -175,7 +175,7 @@ public class TaskManagerFrame extends JFrame {
 
         JLabel completedLabel =
             new JLabel(
-                "完了タスク"
+                "【完了タスク】"
             );
 
         completedTaskPanel =

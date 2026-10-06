@@ -1,5 +1,4 @@
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.*;
@@ -8,9 +7,51 @@ public class TaskManager {
 
     public static void main(String[] args) {
 
-        List<Task> tasks = new ArrayList<>();
+        DatabaseManager.initialize();
+
+        List<Task> tasks = DatabaseManager.loadTasks();
 
         TaskManagerFrame frame = new TaskManagerFrame();
+
+            for (Task task : tasks) {
+
+                TaskPanel taskPanel =
+                    new TaskPanel(
+                        task.getTitle()
+                    );
+
+        if (task.isCompleted()) {
+            taskPanel.checkBox.setSelected(
+                true
+            );
+
+            frame.completedTaskPanel.add(
+                    taskPanel.panel
+                );
+            } else {
+                frame.unfinishedTaskPanel.add(
+                    taskPanel.panel
+                );
+            }
+
+        setupCheckBox(
+            frame,
+            task,
+            taskPanel
+        );
+
+        taskPanel.editButton.addActionListener(
+                event -> {
+
+                    openEditDialog(
+                        frame,
+                        tasks,
+                        task,
+                        taskPanel
+                    );
+                }
+            );
+        }
 
         setupAddButton(frame, tasks);
 
@@ -61,6 +102,13 @@ public class TaskManager {
                         minute,
                         note
                     );
+
+                int id =
+                    DatabaseManager.insertTask(
+                        task
+                    );
+
+                task.setId(id);
 
                 tasks.add(task);
 
@@ -114,8 +162,7 @@ public class TaskManager {
                         taskPanel.checkBox.isSelected()
                     ) {
 
-                        task.completed =
-                            true;
+                        task.setCompleted(true);
 
                         frame.unfinishedTaskPanel.remove(
                             taskPanel.panel
@@ -127,8 +174,7 @@ public class TaskManager {
 
                     } else {
 
-                        task.completed =
-                            false;
+                        task.setCompleted(false);
 
                         frame.completedTaskPanel.remove(
                             taskPanel.panel
@@ -138,6 +184,10 @@ public class TaskManager {
                             taskPanel.panel
                         );
                     }
+
+                    DatabaseManager.updateCompleted(
+                        task
+                    );
 
 
                     frame.taskPanel.revalidate();
@@ -203,26 +253,26 @@ public class TaskManager {
 
     JTextField editNoteField =
         new JTextField(
-            task.note,
+            task.getNote(),
             15
         );
 
 
     // 現在の値を選択
     editMonthBox.setSelectedItem(
-        task.month
+        task.getMonth()
     );
 
     editDayBox.setSelectedItem(
-        task.day
+        task.getDay()
     );
 
     editHourBox.setSelectedItem(
-        task.hour
+        task.getHour()
     );
 
     editMinuteBox.setSelectedItem(
-        task.minute
+        task.getMinute()
     );
 
 
@@ -302,24 +352,33 @@ public class TaskManager {
     saveButton.addActionListener(
         saveEvent -> {
 
-            task.month =
+            task.setMonth(
                 (String)
-                editMonthBox.getSelectedItem();
+                editMonthBox.getSelectedItem()
+            );
 
-            task.day =
+            task.setDay(
                 (String)
-                editDayBox.getSelectedItem();
+                editDayBox.getSelectedItem()
+            );
 
-            task.hour =
+            task.setHour(
                 (String)
-                editHourBox.getSelectedItem();
+                editHourBox.getSelectedItem()
+            );
 
-            task.minute =
+            task.setMinute(
                 (String)
-                editMinuteBox.getSelectedItem();
+                editMinuteBox.getSelectedItem()
+            );
 
-            task.note =
-                editNoteField.getText();
+            task.setNote(
+                editNoteField.getText()
+            );
+
+            DatabaseManager.updateTask(
+                task
+            );
 
             taskPanel.label.setText(
                 task.getTitle()
@@ -337,6 +396,12 @@ public class TaskManager {
     editDeleteButton.addActionListener(
         deleteEvent -> {
 
+            // DBから削除
+            DatabaseManager.deleteTask(
+                task
+            );
+
+            // Listから削除
             tasks.remove(
                 task
             );
