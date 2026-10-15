@@ -4,13 +4,27 @@ import java.util.List;
 
 public class DatabaseManager {
 
+    private static final String DB_DIRECTORY =
+        System.getProperty("user.home")
+        + "/.taskmanager-data";
+
+    private static final String DB_PATH =
+        DB_DIRECTORY + "/tasks.db";
+
     private static final String URL =
-        "jdbc:sqlite:tasks.db";
+        "jdbc:sqlite:" + DB_PATH;
+
+    private static Connection getConnection()
+        throws SQLException {
+        return DriverManager.getConnection(URL);
+    }
 
 
     public static void initialize() {
 
         System.out.println("initialize開始");
+
+        new java.io.File(DB_DIRECTORY).mkdirs();
 
         String sql =
             """
@@ -27,7 +41,7 @@ public class DatabaseManager {
 
         try (
             Connection connection =
-                DriverManager.getConnection(URL);
+                getConnection();
 
             Statement statement =
                 connection.createStatement()
@@ -62,7 +76,7 @@ public class DatabaseManager {
 
     try (
         Connection connection =
-            DriverManager.getConnection(URL);
+            getConnection();
 
         PreparedStatement statement =
             connection.prepareStatement(
@@ -136,7 +150,7 @@ public class DatabaseManager {
 
     try (
         Connection connection =
-            DriverManager.getConnection(URL);
+            getConnection();
 
         PreparedStatement statement =
             connection.prepareStatement(sql)
@@ -193,7 +207,7 @@ public class DatabaseManager {
 
         try (
             Connection connection =
-                DriverManager.getConnection(URL);
+                getConnection();
 
             PreparedStatement statement =
                 connection.prepareStatement(sql)
@@ -229,7 +243,7 @@ public class DatabaseManager {
 
         try (
             Connection connection =
-                DriverManager.getConnection(URL);
+                getConnection();
 
             PreparedStatement statement =
                 connection.prepareStatement(sql)
@@ -261,7 +275,7 @@ public static List<Task> loadTasks() {
 
     try (
         Connection connection =
-            DriverManager.getConnection(URL);
+            getConnection();
 
         PreparedStatement statement =
             connection.prepareStatement(sql);

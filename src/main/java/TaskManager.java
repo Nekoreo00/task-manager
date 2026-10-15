@@ -108,6 +108,17 @@ public class TaskManager {
                         task
                     );
 
+                if (id == -1) {
+                    JOptionPane.showMessageDialog(
+                        frame,
+                        "タスクの追加に失敗しました",
+                        "エラー",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+
+                    return;
+                }
+
                 task.setId(id);
 
                 tasks.add(task);
@@ -352,36 +363,14 @@ public class TaskManager {
     saveButton.addActionListener(
         saveEvent -> {
 
-            task.setMonth(
-                (String)
-                editMonthBox.getSelectedItem()
-            );
-
-            task.setDay(
-                (String)
-                editDayBox.getSelectedItem()
-            );
-
-            task.setHour(
-                (String)
-                editHourBox.getSelectedItem()
-            );
-
-            task.setMinute(
-                (String)
-                editMinuteBox.getSelectedItem()
-            );
-
-            task.setNote(
-                editNoteField.getText()
-            );
-
-            DatabaseManager.updateTask(
-                task
-            );
-
-            taskPanel.label.setText(
-                task.getTitle()
+            saveTaskedit(
+                task,
+                taskPanel,
+                editMonthBox,
+                editDayBox,
+                editHourBox,
+                editMinuteBox,
+                editNoteField
             );
 
             editDialog.dispose();
@@ -444,4 +433,48 @@ public class TaskManager {
         true
     );
 }
+
+    private static void saveTaskedit(
+        Task task,
+        TaskPanel taskPanel,
+        JComboBox<String> editMonthBox,
+        JComboBox<String> editDayBox,
+        JComboBox<String> editHourBox,
+        JComboBox<String> editMinuteBox,
+        JTextField editNoteField
+    ) {
+
+        task.setMonth(
+            (String)
+            editMonthBox.getSelectedItem()
+        );
+
+        task.setDay(
+            (String)
+            editDayBox.getSelectedItem()
+        );
+
+        task.setHour(
+            (String)
+            editHourBox.getSelectedItem()
+        );
+            editHourBox.getSelectedItem();
+
+        task.setMinute(
+            (String)
+            editMinuteBox.getSelectedItem()
+        );
+
+        task.setNote(
+            editNoteField.getText()
+        );
+
+        DatabaseManager.updateTask(
+            task
+        );
+
+        taskPanel.label.setText(
+            task.getTitle()
+        );
+    }
 }

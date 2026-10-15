@@ -4,6 +4,9 @@
 # Build artifacts
 *.jar
 
+# Maven build directory
+target/
+
 # Build directories
 bin/
 build/
