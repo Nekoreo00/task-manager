@@ -46,6 +46,7 @@ task-manager/
       └─ resources/
          └─ images/
             └─ trash.png
+```
 
 ## クラスの役割
 
@@ -74,7 +75,7 @@ task-manager/
   - 画像ファイルの読み込み
   - アイコン画像のサイズ調整を担当
 
-  ## データベース
+## データベース
 
 SQLiteを使用してタスク情報を保存しています。
 
@@ -97,6 +98,7 @@ JavaからSQLiteへはJDBCを使用して接続し、
 
 ```bash
 mvn clean package
+```
 
 ## 学習・工夫した点
 
@@ -133,7 +135,7 @@ mvn clean package
   JARの実行場所に依存せず同じデータを参照できるようにしました。
 
 
-  ## 今後の改善予定
+## 今後の改善予定
 
 - Spring Bootを使用したWebアプリケーション版への移行
 - HTML / CSS / JavaScriptを使用したブラウザ画面の作成
