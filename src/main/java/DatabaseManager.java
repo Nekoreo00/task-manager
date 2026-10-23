@@ -1,8 +1,13 @@
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DatabaseManager {
+
+    // =========================
+    // データベースの保存先
+    // =========================
 
     private static final String DB_DIRECTORY =
         System.getProperty("user.home")
@@ -14,20 +19,27 @@ public class DatabaseManager {
     private static final String URL =
         "jdbc:sqlite:" + DB_PATH;
 
+
+    // =========================
+    // DB接続
+    // =========================
+
     private static Connection getConnection()
         throws SQLException {
+
         return DriverManager.getConnection(URL);
     }
 
 
-    public static void initialize() {
+    // =========================
+    // DB初期化
+    // =========================
 
-        System.out.println("initialize開始");
+    public static void initialize() {
 
         new java.io.File(DB_DIRECTORY).mkdirs();
 
-        String sql =
-            """
+        String sql = """
             CREATE TABLE IF NOT EXISTS tasks (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 month TEXT NOT NULL,
@@ -40,14 +52,10 @@ public class DatabaseManager {
             """;
 
         try (
-            Connection connection =
-                getConnection();
-
+            Connection connection = getConnection();
             Statement statement =
                 connection.createStatement()
         ) {
-
-            System.out.println("DB接続成功");
 
             statement.execute(sql);
 
@@ -57,157 +65,128 @@ public class DatabaseManager {
         }
     }
 
-    public static int insertTask(
-    Task task
-) {
 
-    String sql =
-        """
-        INSERT INTO tasks (
-            month,
-            day,
-            hour,
-            minute,
-            note,
-            completed
-        )
-        VALUES (?, ?, ?, ?, ?, ?)
-        """;
+    // =========================
+    // タスク追加
+    // =========================
 
-    try (
-        Connection connection =
-            getConnection();
+    public static int insertTask(Task task) {
 
-        PreparedStatement statement =
-            connection.prepareStatement(
-                sql,
-                Statement.RETURN_GENERATED_KEYS
+        String sql = """
+            INSERT INTO tasks (
+                month,
+                day,
+                hour,
+                minute,
+                note,
+                completed
             )
-    ) {
+            VALUES (?, ?, ?, ?, ?, ?)
+            """;
 
-        statement.setString(
-            1,
-            task.getMonth()
-        );
+        try (
+            Connection connection = getConnection();
 
-        statement.setString(
-            2,
-            task.getDay()
-        );
+            PreparedStatement statement =
+                connection.prepareStatement(
+                    sql,
+                    Statement.RETURN_GENERATED_KEYS
+                )
+        ) {
 
-        statement.setString(
-            3,
-            task.getHour()
-        );
+            statement.setString(1, task.getMonth());
+            statement.setString(2, task.getDay());
+            statement.setString(3, task.getHour());
+            statement.setString(4, task.getMinute());
+            statement.setString(5, task.getNote());
 
-        statement.setString(
-            4,
-            task.getMinute()
-        );
+            statement.setInt(
+                6,
+                task.isCompleted() ? 1 : 0
+            );
 
-        statement.setString(
-            5,
-            task.getNote()
-        );
+            int insertedRows = statement.executeUpdate();
 
-        statement.setInt(
-            6,
-            task.isCompleted() ? 1 : 0
-        );
+            if (insertedRows != 1) {
+                return -1;
+            }
 
-        statement.executeUpdate();
+            try (
+                ResultSet keys = statement.getGeneratedKeys()
+            ) {
 
-        ResultSet keys =
-            statement.getGeneratedKeys();
+                if (keys.next()) {
+                    return keys.getInt(1);
+                }
+            }
 
-        if (keys.next()) {
-            return keys.getInt(1);
+        } catch (SQLException e) {
+
+            e.printStackTrace();
         }
 
-    } catch (SQLException e) {
-
-        e.printStackTrace();
+        // 登録失敗
+        return -1;
     }
 
-    return -1;
-}
 
-    public static void updateTask(
-    Task task
-) {
+    // =========================
+    // タスク編集
+    // =========================
 
-    String sql =
-        """
-        UPDATE tasks
-        SET
-            month = ?,
-            day = ?,
-            hour = ?,
-            minute = ?,
-            note = ?
-        WHERE id = ?
-        """;
+    public static boolean updateTask(Task task) {
 
-    try (
-        Connection connection =
-            getConnection();
+        String sql = """
+            UPDATE tasks
+            SET
+                month = ?,
+                day = ?,
+                hour = ?,
+                minute = ?,
+                note = ?
+            WHERE id = ?
+            """;
 
-        PreparedStatement statement =
-            connection.prepareStatement(sql)
-    ) {
+        try (
+            Connection connection = getConnection();
 
-        statement.setString(
-            1,
-            task.getMonth()
-        );
+            PreparedStatement statement =
+                connection.prepareStatement(sql)
+        ) {
 
-        statement.setString(
-            2,
-            task.getDay()
-        );
+            statement.setString(1, task.getMonth());
+            statement.setString(2, task.getDay());
+            statement.setString(3, task.getHour());
+            statement.setString(4, task.getMinute());
+            statement.setString(5, task.getNote());
+            statement.setInt(6, task.getId());
 
-        statement.setString(
-            3,
-            task.getHour()
-        );
+            int updatedRows = statement.executeUpdate();
 
-        statement.setString(
-            4,
-            task.getMinute()
-        );
+            return updatedRows == 1;
 
-        statement.setString(
-            5,
-            task.getNote()
-        );
+        } catch (SQLException e) {
 
-        statement.setInt(
-            6,
-            task.getId()
-        );
-
-        statement.executeUpdate();
-
-    } catch (SQLException e) {
-
-        e.printStackTrace();
+            e.printStackTrace();
+            return false;
+        }
     }
-}
 
-    public static void updateCompleted(
-        Task task
-    ) {
 
-        String sql =
-            """
+    // =========================
+    // 完了状態の更新
+    // =========================
+
+    public static boolean updateCompleted(Task task) {
+
+        String sql = """
             UPDATE tasks
             SET completed = ?
             WHERE id = ?
             """;
 
         try (
-            Connection connection =
-                getConnection();
+            Connection connection = getConnection();
 
             PreparedStatement statement =
                 connection.prepareStatement(sql)
@@ -218,100 +197,100 @@ public class DatabaseManager {
                 task.isCompleted() ? 1 : 0
             );
 
-            statement.setInt(
-                2,
-                task.getId()
-            );
+            statement.setInt(2, task.getId());
 
-            statement.executeUpdate();
+            int updatedRows = statement.executeUpdate();
+
+            return updatedRows == 1;
 
         } catch (SQLException e) {
 
             e.printStackTrace();
+            return false;
         }
     }
 
-    public static void deleteTask(
-        Task task
-    ) {
 
-        String sql =
-            """
+    // =========================
+    // タスク削除
+    // =========================
+
+    public static boolean deleteTask(Task task) {
+
+        String sql = """
             DELETE FROM tasks
             WHERE id = ?
             """;
 
         try (
-            Connection connection =
-                getConnection();
+            Connection connection = getConnection();
 
             PreparedStatement statement =
                 connection.prepareStatement(sql)
         ) {
 
-            statement.setInt(
-                1,
-                task.getId()
-            );
+            statement.setInt(1, task.getId());
 
-            statement.executeUpdate();
+            int deletedRows = statement.executeUpdate();
+
+            return deletedRows == 1;
 
         } catch (SQLException e) {
 
             e.printStackTrace();
+            return false;
         }
     }
-public static List<Task> loadTasks() {
 
-    List<Task> tasks =
-        new ArrayList<>();
 
-    String sql =
-        """
-        SELECT *
-        FROM tasks
-        ORDER BY id
-        """;
+    // =========================
+    // タスク一覧取得
+    // =========================
 
-    try (
-        Connection connection =
-            getConnection();
+    public static List<Task> loadTasks() {
 
-        PreparedStatement statement =
-            connection.prepareStatement(sql);
+        List<Task> tasks = new ArrayList<>();
 
-        ResultSet resultSet =
-            statement.executeQuery()
-    ) {
+        String sql = """
+            SELECT *
+            FROM tasks
+            ORDER BY id
+            """;
 
-        while (
-            resultSet.next()
+        try (
+            Connection connection = getConnection();
+
+            PreparedStatement statement =
+                connection.prepareStatement(sql);
+
+            ResultSet resultSet =
+                statement.executeQuery()
         ) {
 
-            int id =
-                resultSet.getInt("id");
+            while (resultSet.next()) {
 
-            String month =
-                resultSet.getString("month");
+                int id =
+                    resultSet.getInt("id");
 
-            String day =
-                resultSet.getString("day");
+                String month =
+                    resultSet.getString("month");
 
-            String hour =
-                resultSet.getString("hour");
+                String day =
+                    resultSet.getString("day");
 
-            String minute =
-                resultSet.getString("minute");
+                String hour =
+                    resultSet.getString("hour");
 
-            String note =
-                resultSet.getString("note");
+                String minute =
+                    resultSet.getString("minute");
 
-            boolean completed =
-                resultSet.getInt("completed") == 1;
+                String note =
+                    resultSet.getString("note");
 
+                boolean completed =
+                    resultSet.getInt("completed") == 1;
 
-            Task task =
-                new Task(
+                Task task = new Task(
                     id,
                     month,
                     day,
@@ -321,17 +300,14 @@ public static List<Task> loadTasks() {
                     completed
                 );
 
+                tasks.add(task);
+            }
 
-            tasks.add(task);
+        } catch (SQLException e) {
+
+            e.printStackTrace();
         }
 
-    } catch (SQLException e) {
-
-        e.printStackTrace();
+        return tasks;
     }
-
-    return tasks;
 }
-
-}
-
